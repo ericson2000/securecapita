@@ -28,8 +28,8 @@ public class UserMapperTest {
                 .title("title")
                 .bio("bio")
                 .imageUrl("imageUrl")
-                .isUsingMfa(false)
-                .isNotLocked(true)
+                .usingMfa(false)
+                .locked(true)
                 .enabled(true)
                 .build();
 
@@ -48,7 +48,43 @@ public class UserMapperTest {
         assertThat(user.getImageUrl()).isEqualTo(userDto.getImageUrl());
         assertThat(user.isEnabled()).isEqualTo(userDto.isEnabled());
         assertThat(user.isUsingMfa()).isEqualTo(userDto.isUsingMfa());
-        assertThat(user.isNotLocked()).isEqualTo(userDto.isNotLocked());
+        assertThat(user.isLocked()).isEqualTo(userDto.isLocked());
+    }
+
+    @Test
+    void given_userDto_map_user() {
+        //GIVEN
+        UserDto userDto = UserDto.builder()
+                .id(1L)
+                .firstName("firstName")
+                .lastName("lastName")
+                .email("email")
+                .address("address")
+                .phone("phone")
+                .title("title")
+                .bio("bio")
+                .imageUrl("imageUrl")
+                .usingMfa(false)
+                .locked(true)
+                .enabled(true)
+                .build();
+
+        //WHEN
+        final User user = UserMapper.INSTANCE.userDtoToUser(userDto);
+
+        //THEN
+        assertThat(user.getId()).isEqualTo(userDto.getId());
+        assertThat(user.getFirstName()).isEqualTo(userDto.getFirstName());
+        assertThat(user.getLastName()).isEqualTo(userDto.getLastName());
+        assertThat(user.getEmail()).isEqualTo(userDto.getEmail());
+        assertThat(user.getAddress()).isEqualTo(userDto.getAddress());
+        assertThat(user.getPhone()).isEqualTo(userDto.getPhone());
+        assertThat(user.getTitle()).isEqualTo(userDto.getTitle());
+        assertThat(user.getBio()).isEqualTo(userDto.getBio());
+        assertThat(user.getImageUrl()).isEqualTo(userDto.getImageUrl());
+        assertThat(user.isEnabled()).isEqualTo(userDto.isEnabled());
+        assertThat(user.isUsingMfa()).isEqualTo(userDto.isUsingMfa());
+        assertThat(user.isLocked()).isEqualTo(userDto.isLocked());
     }
 
 

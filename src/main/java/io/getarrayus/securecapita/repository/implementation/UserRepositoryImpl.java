@@ -34,6 +34,7 @@ public class UserRepositoryImpl implements UserRepository<User> {
     private final NamedParameterJdbcTemplate jdbc;
     private final RoleRepository<Role> roleRepository;
     private final BCryptPasswordEncoder encoder;
+    private final static String USERS_COLUMN_ID = "ID";
 
     @Override
     public User create(User user) {
@@ -45,7 +46,8 @@ public class UserRepositoryImpl implements UserRepository<User> {
             KeyHolder holder = new GeneratedKeyHolder();
             SqlParameterSource parameters = getSqlParameterSource(user);
             jdbc.update(INSERT_USER_QUERY, parameters, holder);
-            user.setId(requireNonNull(holder.getKey()).longValue());
+//            user.setId(requireNonNull(holder.getKey()).longValue());
+            user.setId((Long) requireNonNull(requireNonNull(holder.getKeys()).get(USERS_COLUMN_ID)));
             // Add role to the user
             roleRepository.addRoleToUser(user.getId(), ROLE_USER.name());
             // Send verification table
@@ -55,7 +57,7 @@ public class UserRepositoryImpl implements UserRepository<User> {
             // Send email to user with verification URL
 //            emailService.sendVerificationUrl(user.getFirstName(),user.getEmail(),verificationUrl,ACCOUNT);
             user.setEnabled(false);
-            user.setNotLocked(true);
+            user.setLocked(true);
             // Return the newly created user
             return user;
         } catch (Exception exception) {

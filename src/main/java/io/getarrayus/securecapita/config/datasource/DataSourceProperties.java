@@ -1,4 +1,4 @@
-package io.getarrayus.securecapita.config;
+package io.getarrayus.securecapita.config.datasource;
 
 import lombok.Getter;
 import lombok.NonNull;

@@ -7,15 +7,18 @@ import io.getarrayus.securecapita.rowmapper.RoleRowMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.Map;
 
 import static io.getarrayus.securecapita.enums.RoleType.ROLE_USER;
-import static io.getarrayus.securecapita.query.RoleQuery.INSERT_ROLE_TO_USER_QUERY;
-import static io.getarrayus.securecapita.query.RoleQuery.SELECT_ROLE_BY_NAME_QUERY;
+import static io.getarrayus.securecapita.query.RoleQuery.*;
 import static java.util.Objects.requireNonNull;
 
 @RequiredArgsConstructor
@@ -26,8 +29,20 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
-    public Role create(Role data) {
-        return null;
+    public Role create(Role role) {
+
+        log.info("Adding role ");
+        try {
+            KeyHolder holder = new GeneratedKeyHolder();
+            SqlParameterSource parameters = getSqlParameterSource(role);
+            jdbc.update(INSERT_ROLE_QUERY, parameters, holder);
+            role.setId(requireNonNull(holder.getKey()).longValue());
+            return role;
+            
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("An error occured . Please try again");
+        }
     }
 
     @Override
@@ -41,7 +56,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
     }
 
     @Override
-    public Role update(Role data) {
+    public Role update(Role role) {
         return null;
     }
 
@@ -80,5 +95,11 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
     @Override
     public void updateUserRole(Long userId, String roleName) {
 
+    }
+
+    private SqlParameterSource getSqlParameterSource(Role role) {
+        return new MapSqlParameterSource()
+                .addValue("name", role.getName())
+                .addValue("permission", role.getPermission());
     }
 }

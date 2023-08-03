@@ -1,4 +1,4 @@
-package io.getarrayus.securecapita.config;
+package io.getarrayus.securecapita.config.datasource;
 
 
 import lombok.Getter;
@@ -17,4 +17,6 @@ public class JpaProperties {
     private String dialect;
 
     private String generateDdl;
+
+    private String globallyQuotedIdentifiers;
 }

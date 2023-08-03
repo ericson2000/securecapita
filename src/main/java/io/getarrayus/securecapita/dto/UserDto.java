@@ -1,10 +1,12 @@
 package io.getarrayus.securecapita.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class UserDto {
 
     private Long id;
@@ -27,9 +29,9 @@ public class UserDto {
 
     private boolean enabled;
 
-    private boolean isNotLocked;
+    private boolean locked;
 
-    private boolean isUsingMfa;
+    private boolean usingMfa;
 
     private LocalDateTime createdAt;
 }
