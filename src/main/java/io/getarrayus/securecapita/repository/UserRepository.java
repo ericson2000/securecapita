@@ -4,7 +4,7 @@ import io.getarrayus.securecapita.domain.User;
 
 import java.util.Collection;
 
-public interface UserRepository <T extends User>  {
+public interface UserRepository<T extends User> {
     /* Basic CRUD Operations */
 
     T create(T data);
@@ -15,7 +15,9 @@ public interface UserRepository <T extends User>  {
 
     T update(T data);
 
-    Boolean  delete(Long id);
+    Boolean delete(Long id);
+
+    User getUserByEmail(String email);
 
     /* More Complex Operations */
 

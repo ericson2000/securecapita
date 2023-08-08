@@ -38,7 +38,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
             jdbc.update(INSERT_ROLE_QUERY, parameters, holder);
             role.setId(requireNonNull(holder.getKey()).longValue());
             return role;
-            
+
         } catch (Exception exception) {
             log.error(exception.getMessage());
             throw new ApiException("An error occured . Please try again");
@@ -84,12 +84,32 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
 
     @Override
     public Role getRoleByUserId(Long userId) {
-        return null;
+        log.info("Fetch role for user id: {}", userId);
+
+        try {
+            return jdbc.queryForObject(SELECT_ROLE_BY_ID_QUERY, Map.of("userId", userId), new RoleRowMapper());
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ApiException("No role found by id: " + userId);
+
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("An error occurred . Please try again");
+        }
     }
 
     @Override
     public Role getRoleByUserEmail(String email) {
-        return null;
+        log.info("Fetch role for email: {}", email);
+
+        try {
+            return jdbc.queryForObject(SELECT_ROLE_BY_EMAIL_QUERY, Map.of("email", email), new RoleRowMapper());
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ApiException("No role found by email: " + email);
+
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("An error occurred . Please try again");
+        }
     }
 
     @Override

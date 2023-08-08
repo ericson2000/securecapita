@@ -18,4 +18,9 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(User user) {
         return UserMapper.INSTANCE.userToUserDto(userUserRepository.create(user));
     }
+
+    @Override
+    public UserDto getUserByEmail(String email) {
+        return UserMapper.INSTANCE.userToUserDto(userUserRepository.getUserByEmail(email));
+    }
 }

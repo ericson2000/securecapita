@@ -4,8 +4,8 @@ import io.getarrayus.securecapita.config.InfrastructureTestConfig;
 import io.getarrayus.securecapita.domain.Role;
 import io.getarrayus.securecapita.domain.User;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class UserRepositoryImplIntegrationTest {
 
     private Role role;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         jdbc.execute("CREATE TABLE  Roles (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,name VARCHAR(50),permission VARCHAR(255),CONSTRAINT UQ_Roles_Name UNIQUE (name))", ps -> ps.execute());
         role = Role.builder().name("ROLE_USER").permission("READ:USER,READ:CUSTOMER").build();
@@ -69,7 +69,7 @@ public class UserRepositoryImplIntegrationTest {
 
     }
 
-    @BeforeAll
+    @AfterAll
     void clearDatabase() {
         jdbc.execute("DROP TABLE IF EXISTS AccountVerifications", ps -> ps.execute());
         jdbc.execute("DROP TABLE IF EXISTS UserRoles", ps -> ps.execute());
