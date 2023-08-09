@@ -28,6 +28,7 @@ import java.util.*;
 import static io.getarrayus.securecapita.enums.RoleType.ROLE_USER;
 import static io.getarrayus.securecapita.enums.VerificationType.ACCOUNT;
 import static io.getarrayus.securecapita.query.UserQuery.*;
+import static io.getarrayus.securecapita.utils.SmsUtils.sendSMS;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.time.DateUtils.addDays;
@@ -94,24 +95,6 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         return false;
     }
 
-    private boolean isEmailExists(String email) {
-
-        Integer countEmail = jdbc.queryForObject(COUNT_USER_EMAIL_QUERY, Map.of("email", email), Integer.class);
-        return Objects.nonNull(countEmail) && countEmail > 0;
-    }
-
-    private SqlParameterSource getSqlParameterSource(User user) {
-        return new MapSqlParameterSource()
-                .addValue("firstName", user.getFirstName())
-                .addValue("lastName", user.getLastName())
-                .addValue("email", user.getEmail())
-                .addValue("password", encoder.encode(user.getPassword()));
-    }
-
-    private String getVerificationUrl(String key, String type) {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/verify/" + type + "/" + key).toUriString();
-    }
-
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = getUserByEmail(email);
@@ -145,10 +128,55 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         try {
             jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID_QUERY, Map.of("userId", user.getId()));
             jdbc.update(INSERT_VERIFICATION_CODE_QUERY, Map.of("userId", user.getId(), "code", verificationCode, "expirationDate", expirationDate));
-//            sendSMS(user.getPhone(), "FROM: SecureCapita \nVerification code\n" + verificationCode);
+            sendSMS(user.getPhone(), "FROM: SecureCapita \nVerification code\n" + verificationCode);
+            log.info("Verification Code: {}", verificationCode);
         } catch (Exception exception) {
             log.error(exception.getMessage());
             throw new ApiException("An error occurend. Please try again.");
         }
+    }
+
+    @Override
+    public User verifyCode(String email, String code) {
+        try {
+            User userByCode = jdbc.queryForObject(SELECT_USER_BY_USER_CODE_QUERY, Map.of("code", code), new UserRowMapper());
+            User userByEmail = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
+            if (isEmailAreSame(userByCode, userByEmail)) {
+                jdbc.update(DELETE_VERIFICATION_CODE_BY_CODE_QUERY, Map.of("code", code));
+                return userByCode;
+            } else {
+                throw new ApiException("Code is invalid. Please try again.");
+            }
+
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ApiException("Could not find record");
+        } catch (Exception exception) {
+            throw new ApiException("An error occurend. Please try again.");
+        }
+    }
+
+    private boolean isEmailExists(String email) {
+
+        Integer countEmail = jdbc.queryForObject(COUNT_USER_EMAIL_QUERY, Map.of("email", email), Integer.class);
+        return Objects.nonNull(countEmail) && countEmail > 0;
+    }
+
+    private SqlParameterSource getSqlParameterSource(User user) {
+        return new MapSqlParameterSource()
+                .addValue("firstName", user.getFirstName())
+                .addValue("lastName", user.getLastName())
+                .addValue("email", user.getEmail())
+                .addValue("password", encoder.encode(user.getPassword()));
+    }
+
+    private String getVerificationUrl(String key, String type) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/verify/" + type + "/" + key).toUriString();
+    }
+
+    private boolean isEmailAreSame(User userByCode, User userByEmail) {
+        return Objects.nonNull(userByCode)
+                && Objects.nonNull(userByCode.getEmail())
+                && Objects.nonNull(userByEmail)
+                && userByCode.getEmail().equals(userByEmail.getEmail());
     }
 }

@@ -14,7 +14,7 @@ import com.twilio.type.PhoneNumber;
 public class SmsUtils {
     public static final String FROM_NUMBER = "+14782105287";
     public static final String SID_KEY = "AC5f1f44ea48833e4cd5b0275b54130a48";
-    public static final String TOKEN_KEY = "e393c1bd2fa17ecfb3f700b5fe8fcd88";
+    public static final String TOKEN_KEY = "bf9641eb42186d0dbbce856c1e3f8775";
 
     public static void sendSMS(String phoneNumber, String messageBody) {
         Twilio.init(SID_KEY, TOKEN_KEY);

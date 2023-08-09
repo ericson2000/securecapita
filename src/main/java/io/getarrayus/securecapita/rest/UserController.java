@@ -2,18 +2,19 @@ package io.getarrayus.securecapita.rest;
 
 import io.getarrayus.securecapita.domain.HttpResponse;
 import io.getarrayus.securecapita.domain.User;
+import io.getarrayus.securecapita.domain.UserPrincipal;
 import io.getarrayus.securecapita.dto.UserDto;
 import io.getarrayus.securecapita.form.LoginForm;
+import io.getarrayus.securecapita.mapper.UserMapper;
+import io.getarrayus.securecapita.provider.TokenProvider;
+import io.getarrayus.securecapita.service.RoleService;
 import io.getarrayus.securecapita.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -29,7 +30,9 @@ import static org.springframework.http.HttpStatus.OK;
 public class UserController {
 
     private final UserService userService;
+    private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
+    private final TokenProvider tokenProvider;
 
     @PostMapping("/login")
     public ResponseEntity<HttpResponse> login(@RequestBody @Valid LoginForm loginForm) {
@@ -53,6 +56,20 @@ public class UserController {
                         .build());
     }
 
+    @GetMapping("/verify/code/{email}/{code}")
+    public ResponseEntity<HttpResponse> verifyCode(@PathVariable("email") String email, @PathVariable("code") String code) {
+        UserDto userDto = userService.verifyCode(email, code);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .data(Map.of("user", userDto, "access_token", tokenProvider.createAccessToken(getUserPrincipal(userDto)),
+                                "refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(userDto))))
+                        .message("Login Success")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
     private URI getUri() {
         return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/get/<userId>").toUriString());
     }
@@ -73,10 +90,15 @@ public class UserController {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
-                        .data(Map.of("user", userDto))
+                        .data(Map.of("user", userDto, "access_token", tokenProvider.createAccessToken(getUserPrincipal(userDto)),
+                                "refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(userDto))))
                         .message("Login Success")
                         .status(OK)
                         .statusCode(OK.value())
                         .build());
+    }
+
+    private UserPrincipal getUserPrincipal(UserDto userDto) {
+        return new UserPrincipal(UserMapper.INSTANCE.userDtoToUser(userService.getUserByEmail(userDto.getEmail())), roleService.getRoleByUserId(userDto.getId()).getPermission());
     }
 }

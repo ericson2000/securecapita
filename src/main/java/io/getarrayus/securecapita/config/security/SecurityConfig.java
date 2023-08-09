@@ -34,7 +34,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
 
-    private static final String[] PUBLIC_URLS = {"/users/login/**"};
+    private static final String[] PUBLIC_URLS = {"/users/login/**", "/users/verify/code/**"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
