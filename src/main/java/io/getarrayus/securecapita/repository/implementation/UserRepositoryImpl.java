@@ -9,6 +9,7 @@ import io.getarrayus.securecapita.repository.UserRepository;
 import io.getarrayus.securecapita.rowmapper.UserRowMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,21 +23,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static io.getarrayus.securecapita.enums.RoleType.ROLE_USER;
 import static io.getarrayus.securecapita.enums.VerificationType.ACCOUNT;
 import static io.getarrayus.securecapita.query.UserQuery.*;
 import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.time.DateUtils.addDays;
 
 @RequiredArgsConstructor
 @Repository
 @Slf4j
 public class UserRepositoryImpl implements UserRepository<User>, UserDetailsService {
 
+    private static final String DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
     private final NamedParameterJdbcTemplate jdbc;
     private final RoleRepository<Role> roleRepository;
     private final BCryptPasswordEncoder encoder;
@@ -131,6 +132,20 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         } catch (EmptyResultDataAccessException exception) {
             log.error(exception.getMessage());
             throw new ApiException("No User found by email: " + email);
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("An error occurend. Please try again.");
+        }
+    }
+
+    @Override
+    public void sendVerificationCode(User user) {
+        String expirationDate = DateFormatUtils.format(addDays(new Date(), 1), DATE_FORMAT);
+        String verificationCode = randomAlphabetic(8).toUpperCase();
+        try {
+            jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID_QUERY, Map.of("userId", user.getId()));
+            jdbc.update(INSERT_VERIFICATION_CODE_QUERY, Map.of("userId", user.getId(), "code", verificationCode, "expirationDate", expirationDate));
+//            sendSMS(user.getPhone(), "FROM: SecureCapita \nVerification code\n" + verificationCode);
         } catch (Exception exception) {
             log.error(exception.getMessage());
             throw new ApiException("An error occurend. Please try again.");

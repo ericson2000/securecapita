@@ -35,15 +35,10 @@ public class UserController {
     public ResponseEntity<HttpResponse> login(@RequestBody @Valid LoginForm loginForm) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginForm.getEmail(), loginForm.getPassword()));
         UserDto userDto = userService.getUserByEmail(loginForm.getEmail());
-        return ResponseEntity.ok().body(
-                HttpResponse.builder()
-                        .timeStamp(LocalDateTime.now().toString())
-                        .data(Map.of("user", userDto))
-                        .message("Login Success")
-                        .status(OK)
-                        .statusCode(OK.value())
-                        .build());
+        return userDto.isUsingMfa() ? sendVerificationCode(userDto) : sendResponse(userDto);
+
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<HttpResponse> saveUser(@RequestBody @Valid User user) {
@@ -60,5 +55,28 @@ public class UserController {
 
     private URI getUri() {
         return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/get/<userId>").toUriString());
+    }
+
+    private ResponseEntity<HttpResponse> sendVerificationCode(UserDto userDto) {
+        userService.sendVerificationCode(userDto);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .data(Map.of("user", userDto))
+                        .message("Verification Code Sent")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
+    private ResponseEntity<HttpResponse> sendResponse(UserDto userDto) {
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .data(Map.of("user", userDto))
+                        .message("Login Success")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
     }
 }
