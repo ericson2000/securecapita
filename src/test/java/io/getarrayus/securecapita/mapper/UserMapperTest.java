@@ -1,5 +1,6 @@
 package io.getarrayus.securecapita.mapper;
 
+import io.getarrayus.securecapita.domain.Role;
 import io.getarrayus.securecapita.domain.User;
 import io.getarrayus.securecapita.dto.UserDto;
 import org.junit.jupiter.api.Test;
@@ -85,6 +86,22 @@ public class UserMapperTest {
         assertThat(user.isEnabled()).isEqualTo(userDto.isEnabled());
         assertThat(user.isUsingMfa()).isEqualTo(userDto.isUsingMfa());
         assertThat(user.isLocked()).isEqualTo(userDto.isLocked());
+    }
+
+    @Test
+    void given_user_map_UserDtoWithRole() {
+        //GIVEN
+        User user = User.builder()
+                .build();
+        Role role = Role.builder().name("ROLE_MANAGER").permission("READ:USER,READ:CUSTOMER,UPDATE:USER,UPDATE:CUSTOMER").build();
+
+        //WHEN
+        final UserDto userDto = UserMapper.INSTANCE.userToUserDtoWithRole(user, role);
+
+        //THEN
+        assertThat(userDto.getRoleName()).isEqualTo(role.getName());
+        assertThat(userDto.getPermissions()).isEqualTo(role.getPermission());
+
     }
 
 

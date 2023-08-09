@@ -5,7 +5,6 @@ import io.getarrayus.securecapita.domain.User;
 import io.getarrayus.securecapita.domain.UserPrincipal;
 import io.getarrayus.securecapita.dto.UserDto;
 import io.getarrayus.securecapita.form.LoginForm;
-import io.getarrayus.securecapita.mapper.UserMapper;
 import io.getarrayus.securecapita.provider.TokenProvider;
 import io.getarrayus.securecapita.service.RoleService;
 import io.getarrayus.securecapita.service.UserService;
@@ -21,6 +20,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import static io.getarrayus.securecapita.mapper.UserMapper.INSTANCE;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -99,6 +99,6 @@ public class UserController {
     }
 
     private UserPrincipal getUserPrincipal(UserDto userDto) {
-        return new UserPrincipal(UserMapper.INSTANCE.userDtoToUser(userService.getUserByEmail(userDto.getEmail())), roleService.getRoleByUserId(userDto.getId()).getPermission());
+        return new UserPrincipal(INSTANCE.userDtoToUser(userService.getUserByEmail(userDto.getEmail())), roleService.getRoleByUserId(userDto.getId()).getPermission());
     }
 }

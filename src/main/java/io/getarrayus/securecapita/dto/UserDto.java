@@ -1,12 +1,14 @@
 package io.getarrayus.securecapita.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
 @Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDto {
 
     private Long id;
@@ -34,4 +36,8 @@ public class UserDto {
     private boolean usingMfa;
 
     private LocalDateTime createdAt;
+
+    private String roleName;
+
+    private String permissions;
 }
