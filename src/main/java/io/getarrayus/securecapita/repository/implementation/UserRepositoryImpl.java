@@ -100,7 +100,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         User user = getUserByEmail(email);
         if (Objects.nonNull(user)) {
             log.info("User found in the database: {}", email);
-            return new UserPrincipal(user, roleRepository.getRoleByUserId(user.getId()).getPermission());
+            return new UserPrincipal(user, roleRepository.getRoleByUserId(user.getId()));
         } else {
             var message = "User not found in the database";
             log.error(message);

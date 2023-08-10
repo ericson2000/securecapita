@@ -7,7 +7,9 @@ import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import io.getarrayus.securecapita.domain.UserPrincipal;
+import io.getarrayus.securecapita.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,6 +34,7 @@ import static java.util.Arrays.stream;
  * @since 31/07/2023
  */
 @Component
+@RequiredArgsConstructor
 public class TokenProvider {
     public static final String TOKEN_CANNOT_BE_VERIFIED = "Token cannot be verified";
     private static final String GET_ARRAYS_LLC = "GET_ARRAYS_LLC";
@@ -42,6 +45,8 @@ public class TokenProvider {
 
     @Value("${jwt.secret}")
     private String secret;
+
+    private final UserService userService;
 
     public String createAccessToken(UserPrincipal userPrincipal) {
         return JWT.create().withIssuer(GET_ARRAYS_LLC).withAudience(CUSTOMER_MANAGEMENT_SERVICE)
@@ -93,14 +98,14 @@ public class TokenProvider {
     }
 
     public Authentication getAuthentication(String email, List<GrantedAuthority> authorities, HttpServletRequest request) {
-        UsernamePasswordAuthenticationToken userPasswordAuthToken = new UsernamePasswordAuthenticationToken(email, null, authorities);
+        UsernamePasswordAuthenticationToken userPasswordAuthToken = new UsernamePasswordAuthenticationToken(userService.getUserByEmail(email), null, authorities);
         userPasswordAuthToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return userPasswordAuthToken;
     }
 
     public boolean isTokenValid(String email, String token) {
         JWTVerifier verifier = getJWTVerifier();
-        return StringUtils.isNotEmpty(email) && isTokenExpired(verifier, token);
+        return StringUtils.isNotEmpty(email) && !isTokenExpired(verifier, token);
     }
 
     private boolean isTokenExpired(JWTVerifier verifier, String token) {
