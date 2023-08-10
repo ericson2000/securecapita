@@ -23,6 +23,12 @@ public interface UserRepository<T extends User> {
 
     User verifyCode(String email, String code);
 
+    void resetPassword(String email);
+
+    User verifyPasswordKey(String key);
+
+    void renewPassword(String key, String password, String confirmPassword);
+
     /* More Complex Operations */
 
 

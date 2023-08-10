@@ -93,6 +93,49 @@ public class UserController {
                         .build());
     }
 
+    // START- To reset password when user is not logged in
+
+    @GetMapping("/resetpassword/{email}")
+    public ResponseEntity<HttpResponse> resetPassword(@PathVariable("email") String email) {
+        userService.resetPassword(email);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .message("Email sent. Please check your email to reset your password.")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
+    @GetMapping("/verify/password/{key}")
+    public ResponseEntity<HttpResponse> verifyPasswordUrl(@PathVariable("key") String key) {
+        UserDto userDto = userService.verifyPasswordKey(key);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .data(Map.of("user", userDto))
+                        .message("Please enter a new password.")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
+    @PostMapping("/resetpassword/{key}/{password}/{confirmPassword}")
+    public ResponseEntity<HttpResponse> renewPasswordWithKey(@PathVariable("key") String key, @PathVariable("password") String password,
+                                                             @PathVariable("confirmPassword") String confirmPassword) {
+
+        userService.renewPassword(key, password, confirmPassword);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .message("Password rest successfully.")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
+    // END- To reset password when user is not logged in
+
     @RequestMapping("/error")
     public ResponseEntity<HttpResponse> handleError(HttpServletRequest request) {
         return ResponseEntity.badRequest().body(
@@ -105,7 +148,7 @@ public class UserController {
     }
 
     private URI getUri() {
-        return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/get/<userId>").toUriString());
+        return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/users/get/<userId>").toUriString());
     }
 
     private ResponseEntity<HttpResponse> sendVerificationCode(UserDto userDto) {
@@ -138,8 +181,7 @@ public class UserController {
 
     private Authentication authenticate(String email, String password) {
         try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-            return authentication;
+            return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (Exception exception) {
             processError(request, response, exception);
             throw new ApiException(exception.getMessage());
