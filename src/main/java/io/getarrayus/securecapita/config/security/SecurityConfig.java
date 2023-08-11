@@ -37,7 +37,9 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final CustomAuthorizationFilter customAuthorizationFilter;
 
-    private static final String[] PUBLIC_URLS = {"/users/login/**", "/users/verify/code/**", "/users/register/**", "/users/error/**", "/users/resetpassword/**", "/users/verify/password/**"};
+    private static final String[] PUBLIC_URLS = {"/users/login/**", "/users/verify/code/**",
+            "/users/register/**", "/users/error/**", "/users/resetpassword/**",
+            "/users/verify/password/**", "/users/verify/account/**", "/users/refresh/token/**"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
