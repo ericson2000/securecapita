@@ -3,6 +3,7 @@ package io.getarrayus.securecapita.mapper;
 import io.getarrayus.securecapita.domain.Role;
 import io.getarrayus.securecapita.domain.User;
 import io.getarrayus.securecapita.dto.UserDto;
+import io.getarrayus.securecapita.form.UpdateForm;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -23,6 +24,10 @@ public interface UserMapper {
 
 
     User userDtoToUser(UserDto userDto);
+
+
+    User updateFormToUser(UpdateForm updateForm);
+
 
     @Named("toRoleName")
     static String toRoleName(User user, @Context Role role) {

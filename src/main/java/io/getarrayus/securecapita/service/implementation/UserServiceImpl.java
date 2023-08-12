@@ -3,6 +3,7 @@ package io.getarrayus.securecapita.service.implementation;
 import io.getarrayus.securecapita.domain.Role;
 import io.getarrayus.securecapita.domain.User;
 import io.getarrayus.securecapita.dto.UserDto;
+import io.getarrayus.securecapita.form.UpdateForm;
 import io.getarrayus.securecapita.repository.RoleRepository;
 import io.getarrayus.securecapita.repository.UserRepository;
 import io.getarrayus.securecapita.service.UserService;
@@ -56,6 +57,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto verifyAccountKey(String key) {
         return mapToUserDto(userRepository.verifyAccountKey(key));
+    }
+
+    @Override
+    public UserDto updateUserDetails(UpdateForm user) {
+        return mapToUserDto(userRepository.updateUserDetails(INSTANCE.updateFormToUser(user)));
+    }
+
+    @Override
+    public UserDto getUserById(Long userId) {
+        return mapToUserDto(userRepository.getUserById(userId));
     }
 
     private UserDto mapToUserDto(User user) {

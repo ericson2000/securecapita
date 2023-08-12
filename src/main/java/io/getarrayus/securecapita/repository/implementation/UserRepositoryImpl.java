@@ -44,7 +44,8 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
     private final NamedParameterJdbcTemplate jdbc;
     private final RoleRepository<Role> roleRepository;
     private final BCryptPasswordEncoder encoder;
-    private final static String USERS_COLUMN_ID = "ID";
+    private static final String USERS_COLUMN_ID = "ID";
+    private static final String DEFAULT_ERROR_MESSAGE = "An error occured. Please try again";
 
     @Override
     public User create(User user) {
@@ -72,7 +73,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             return user;
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occured. Please try again");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -83,8 +84,16 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
     }
 
     @Override
-    public User get(Long id) {
-        return null;
+    public User getUserById(Long id) {
+        try {
+            return jdbc.queryForObject(SELECT_USER_BY_ID_QUERY, Map.of("id", id), new UserRowMapper());
+        } catch (EmptyResultDataAccessException exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("No User found by id: " + id);
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
+        }
     }
 
     @Override
@@ -119,7 +128,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             throw new ApiException("No User found by email: " + email);
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -134,7 +143,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             log.info("Verification Code: {}", verificationCode);
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -154,7 +163,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         } catch (EmptyResultDataAccessException exception) {
             throw new ApiException("Could not find record");
         } catch (Exception exception) {
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -171,7 +180,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             log.info("Verification URL: {}", verificationUrl);
 
         } catch (Exception exception) {
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -188,7 +197,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             throw new ApiException("This link is not valid. Please rest your password again.");
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -202,7 +211,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             jdbc.update(DELETE_VERIFICATION_BY_URL_QUERY, Map.of("url", getVerificationUrl(key, PASSWORD.getType())));
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -215,7 +224,21 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         } catch (EmptyResultDataAccessException exception) {
             throw new ApiException("This link is not valid.");
         } catch (Exception exception) {
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public User updateUserDetails(User user) {
+        try {
+            jdbc.update(UPDATE_USER_DETAILS_QUERY, getUserDetailsSqlParameterSource(user));
+            return getUserById(user.getId());
+        } catch (EmptyResultDataAccessException exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("No User found by id: " + user.getId());
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -227,7 +250,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             throw new ApiException("This link is not valid. Please rest your password again.");
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -242,6 +265,18 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
                 .addValue("lastName", user.getLastName())
                 .addValue("email", user.getEmail())
                 .addValue("password", encoder.encode(user.getPassword()));
+    }
+
+    private SqlParameterSource getUserDetailsSqlParameterSource(User user) {
+        return new MapSqlParameterSource()
+                .addValue("id", user.getId())
+                .addValue("firstName", user.getFirstName())
+                .addValue("lastName", user.getLastName())
+                .addValue("email", user.getEmail())
+                .addValue("address", user.getAddress())
+                .addValue("title", user.getTitle())
+                .addValue("bio", user.getBio())
+                .addValue("phone", user.getPhone());
     }
 
     private String getVerificationUrl(String key, String type) {
@@ -261,7 +296,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         } catch (EmptyResultDataAccessException exception) {
             throw new ApiException("This code is not valid. Please login again.");
         } catch (Exception exception) {
-            throw new ApiException("An error occurend. Please try again.");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 

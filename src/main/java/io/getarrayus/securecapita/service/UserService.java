@@ -2,6 +2,7 @@ package io.getarrayus.securecapita.service;
 
 import io.getarrayus.securecapita.domain.User;
 import io.getarrayus.securecapita.dto.UserDto;
+import io.getarrayus.securecapita.form.UpdateForm;
 
 public interface UserService {
 
@@ -20,4 +21,8 @@ public interface UserService {
     void renewPassword(String key, String password, String confirmPassword);
 
     UserDto verifyAccountKey(String key);
+
+    UserDto updateUserDetails(UpdateForm user);
+
+    UserDto getUserById(Long userId);
 }

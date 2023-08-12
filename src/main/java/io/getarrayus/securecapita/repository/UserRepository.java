@@ -11,7 +11,7 @@ public interface UserRepository<T extends User> {
 
     Collection<T> list(int page, int pagaSize);
 
-    T get(Long id);
+    T getUserById(Long id);
 
     T update(T data);
 
@@ -30,6 +30,8 @@ public interface UserRepository<T extends User> {
     void renewPassword(String key, String password, String confirmPassword);
 
     User verifyAccountKey(String key);
+
+    User updateUserDetails(User user);
 
     /* More Complex Operations */
 

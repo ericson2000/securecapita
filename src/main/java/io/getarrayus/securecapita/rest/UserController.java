@@ -6,6 +6,7 @@ import io.getarrayus.securecapita.domain.UserPrincipal;
 import io.getarrayus.securecapita.dto.UserDto;
 import io.getarrayus.securecapita.exception.ApiException;
 import io.getarrayus.securecapita.form.LoginForm;
+import io.getarrayus.securecapita.form.UpdateForm;
 import io.getarrayus.securecapita.provider.TokenProvider;
 import io.getarrayus.securecapita.service.RoleService;
 import io.getarrayus.securecapita.service.UserService;
@@ -25,7 +26,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static io.getarrayus.securecapita.mapper.UserMapper.INSTANCE;
-import static io.getarrayus.securecapita.utils.ExceptionUtils.processError;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.*;
 
@@ -76,6 +76,19 @@ public class UserController {
                         .timeStamp(LocalDateTime.now().toString())
                         .data(Map.of("user", userDto))
                         .message("Profile Retrieved")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<HttpResponse> updateUser(@RequestBody @Valid UpdateForm user) {
+        UserDto updateUserDto = userService.updateUserDetails(user);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .data(Map.of("user", updateUserDto))
+                        .message("User Updated")
                         .status(OK)
                         .statusCode(OK.value())
                         .build());
@@ -154,7 +167,7 @@ public class UserController {
     public ResponseEntity<HttpResponse> refreshToken(HttpServletRequest request) {
         if (isHeaderAndTokenValid(request)) {
             String token = request.getHeader(AUTHORIZATION).substring(TOKEN_PREFIX.length());
-            UserDto userDto = userService.getUserByEmail(tokenProvider.getSubject(token, request));
+            UserDto userDto = userService.getUserById(tokenProvider.getSubject(token, request));
             return ResponseEntity.ok().body(
                     HttpResponse.builder()
                             .timeStamp(LocalDateTime.now().toString())
@@ -241,7 +254,7 @@ public class UserController {
         try {
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (Exception exception) {
-            processError(request, response, exception);
+//            processError(request, response, exception);
             throw new ApiException(exception.getMessage());
         }
     }

@@ -26,6 +26,8 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class RoleRepositoryImpl implements RoleRepository<Role> {
 
+    private static final String DEFAULT_ERROR_MESSAGE = "An error occured. Please try again";
+
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
@@ -41,7 +43,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
 
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occured . Please try again");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -78,7 +80,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
 
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occured . Please try again");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -93,7 +95,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
 
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occurred . Please try again");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
@@ -108,7 +110,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
 
         } catch (Exception exception) {
             log.error(exception.getMessage());
-            throw new ApiException("An error occurred . Please try again");
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
     }
 
