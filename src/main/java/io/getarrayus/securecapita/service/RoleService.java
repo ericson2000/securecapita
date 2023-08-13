@@ -2,6 +2,8 @@ package io.getarrayus.securecapita.service;
 
 import io.getarrayus.securecapita.domain.Role;
 
+import java.util.Collection;
+
 /**
  * @version 1.0
  * @Author Eric Wouwo Tionang
@@ -11,4 +13,6 @@ import io.getarrayus.securecapita.domain.Role;
 
 public interface RoleService {
     Role getRoleByUserId(Long userId);
+
+    Collection<Role> getRoles();
 }

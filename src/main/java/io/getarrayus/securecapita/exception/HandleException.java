@@ -1,8 +1,10 @@
 package io.getarrayus.securecapita.exception;
 
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import io.getarrayus.securecapita.domain.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -142,6 +144,19 @@ public class HandleException extends ResponseEntityExceptionHandler implements E
                         .build(), BAD_REQUEST);
     }
 
+    @ExceptionHandler(JWTDecodeException.class)
+    public ResponseEntity<HttpResponse> jWTDecodeException(JWTDecodeException exception) {
+        log.error(exception.getMessage());
+        return new ResponseEntity<>(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .reason("Could not decode the token")
+                        .developerMessage(exception.getMessage())
+                        .status(INTERNAL_SERVER_ERROR)
+                        .statusCode(INTERNAL_SERVER_ERROR.value())
+                        .build(), INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<HttpResponse> disabledException(DisabledException exception) {
         log.error(exception.getMessage());
@@ -166,6 +181,19 @@ public class HandleException extends ResponseEntityExceptionHandler implements E
                         .status(BAD_REQUEST)
                         .statusCode(BAD_REQUEST.value())
                         .build(), BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<HttpResponse> dataAccessException(DataAccessException exception) {
+        log.error(exception.getMessage());
+        return new ResponseEntity<>(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .reason(exception.getMessage())
+                        .developerMessage(exception.getMessage())
+                        .status(INTERNAL_SERVER_ERROR)
+                        .statusCode(INTERNAL_SERVER_ERROR.value())
+                        .build(), INTERNAL_SERVER_ERROR);
     }
 
     private String getReason(Exception exception) {

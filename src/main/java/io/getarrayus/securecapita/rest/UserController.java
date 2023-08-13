@@ -7,6 +7,7 @@ import io.getarrayus.securecapita.dto.UserDto;
 import io.getarrayus.securecapita.exception.ApiException;
 import io.getarrayus.securecapita.form.LoginForm;
 import io.getarrayus.securecapita.form.UpdateForm;
+import io.getarrayus.securecapita.form.UpdatePasswordForm;
 import io.getarrayus.securecapita.provider.TokenProvider;
 import io.getarrayus.securecapita.service.RoleService;
 import io.getarrayus.securecapita.service.UserService;
@@ -74,7 +75,7 @@ public class UserController {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
-                        .data(Map.of("user", userDto))
+                        .data(Map.of("user", userDto, "roles", roleService.getRoles()))
                         .message("Profile Retrieved")
                         .status(OK)
                         .statusCode(OK.value())
@@ -117,6 +118,33 @@ public class UserController {
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
                         .message("Email sent. Please check your email to reset your password.")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
+    @PutMapping("/update/password")
+    public ResponseEntity<HttpResponse> updatePassword(Authentication authentication, @RequestBody @Valid UpdatePasswordForm form) {
+        UserDto userDto = getAuthenticatedUser(authentication);
+        userService.updatePassword(userDto.getId(), form.getCurrentPassword(), form.getNewPassword(), form.getConfirmNewPassword());
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .message("Password Updated successfully")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
+    @PutMapping("/update/role/{roleName}")
+    public ResponseEntity<HttpResponse> updateRole(Authentication authentication, @PathVariable("roleName") String roleName) {
+        UserDto userDto = getAuthenticatedUser(authentication);
+        userService.updateUserRole(userDto.getId(), roleName);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().toString())
+                        .data(Map.of("user", userService.getUserById(userDto.getId()), "roles", roleService.getRoles()))
+                        .message("Password Updated successfully")
                         .status(OK)
                         .statusCode(OK.value())
                         .build());

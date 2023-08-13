@@ -102,7 +102,6 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
     @Override
     public Role getRoleByUserEmail(String email) {
         log.info("Fetch role for email: {}", email);
-
         try {
             return jdbc.queryForObject(SELECT_ROLE_BY_EMAIL_QUERY, Map.of("email", email), new RoleRowMapper());
         } catch (EmptyResultDataAccessException exception) {
@@ -117,6 +116,29 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
     @Override
     public void updateUserRole(Long userId, String roleName) {
 
+        log.info("Updating role for userId: {} and RoleName: {}", userId, roleName);
+        try {
+            Role role = jdbc.queryForObject(SELECT_ROLE_BY_NAME_QUERY, Map.of("roleName", roleName), new RoleRowMapper());
+            jdbc.update(UPDATE_USER_ROLE_QUERY, Map.of("roleId", role.getId(), "userId", userId));
+        } catch (EmptyResultDataAccessException exception) {
+            throw new ApiException("No role found by name: " + roleName);
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public Collection<Role> getRoles() {
+
+        log.info("Fetchin all role in the database");
+
+        try {
+            return jdbc.query(SELECT_ROLES_QUERY, new RoleRowMapper());
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
+        }
     }
 
     private SqlParameterSource getSqlParameterSource(Role role) {

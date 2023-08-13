@@ -21,4 +21,5 @@ public class UserQuery {
     public static final String UPDATE_USER_ENABLED_QUERY = "UPDATE Users SET enabled = :enabled WHERE id = :userId";
     public static final String UPDATE_USER_DETAILS_QUERY = "UPDATE Users set first_name = :firstName, last_name = :lastName ,email = :email, address = :address, title = :title, bio = :bio, phone = :phone WHERE id = :id";
     public static final String SELECT_USER_BY_ID_QUERY = "SELECT * FROM Users WHERE id = :id";
+    public static final String UPDATE_PASSWORD_BY_ID_QUERY = "UPDATE Users SET password = :password WHERE id = :userId";
 }

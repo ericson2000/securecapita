@@ -6,6 +6,8 @@ import io.getarrayus.securecapita.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+
 /**
  * @version 1.0
  * @Author Eric Wouwo Tionang
@@ -21,5 +23,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Role getRoleByUserId(Long userId) {
         return roleRepository.getRoleByUserId(userId);
+    }
+
+    @Override
+    public Collection<Role> getRoles() {
+        return roleRepository.getRoles();
     }
 }

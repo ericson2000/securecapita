@@ -33,6 +33,9 @@ public class ExceptionUtils {
         if (isSecurityException(exception)) {
             HttpResponse httpResponse = getHttpResponse(response, exception.getMessage(), BAD_REQUEST);
             writeResponse(response, httpResponse);
+        } else if (exception instanceof TokenExpiredException) {
+            HttpResponse httpResponse = getHttpResponse(response, exception.getMessage(), UNAUTHORIZED);
+            writeResponse(response, httpResponse);
         } else {
             HttpResponse httpResponse = getHttpResponse(response, "An error occured. Please try again", INTERNAL_SERVER_ERROR);
             writeResponse(response, httpResponse);
@@ -56,7 +59,7 @@ public class ExceptionUtils {
     private static boolean isSecurityException(Exception exception) {
         return (exception instanceof ApiException || exception instanceof DisabledException
                 || exception instanceof LockedException || exception instanceof InvalidClaimException
-                || exception instanceof TokenExpiredException || exception instanceof BadCredentialsException);
+                || exception instanceof BadCredentialsException);
     }
 
     private static HttpResponse getHttpResponse(HttpServletResponse response, String message, HttpStatus httpStatus) {

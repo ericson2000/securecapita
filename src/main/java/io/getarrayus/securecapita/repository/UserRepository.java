@@ -33,6 +33,8 @@ public interface UserRepository<T extends User> {
 
     User updateUserDetails(User user);
 
+    void updatePassword(Long id, String currentPassword, String newPassword, String confirmNewPassword);
+
     /* More Complex Operations */
 
 

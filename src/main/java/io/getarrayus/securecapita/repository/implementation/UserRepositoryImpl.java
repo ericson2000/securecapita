@@ -205,7 +205,6 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
     public void renewPassword(String key, String password, String confirmPassword) {
         if (!isPasswordAreSame(password, confirmPassword))
             throw new ApiException("Passwords don't match. Please try again.");
-
         try {
             jdbc.update(UPDATE_USER_PASSWORD_BY_URL_QUERY, Map.of("password", encoder.encode(password), "url", getVerificationUrl(key, PASSWORD.getType())));
             jdbc.update(DELETE_VERIFICATION_BY_URL_QUERY, Map.of("url", getVerificationUrl(key, PASSWORD.getType())));
@@ -240,6 +239,24 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             log.error(exception.getMessage());
             throw new ApiException(DEFAULT_ERROR_MESSAGE);
         }
+    }
+
+    @Override
+    public void updatePassword(Long id, String currentPassword, String newPassword, String confirmNewPassword) {
+        if (!isPasswordAreSame(newPassword, confirmNewPassword))
+            throw new ApiException("Passwords don't match. Please try again.");
+        User user = getUserById(id);
+        if (encoder.matches(currentPassword, user.getPassword())) {
+            try {
+                jdbc.update(UPDATE_PASSWORD_BY_ID_QUERY, Map.of("userId", id, "password", encoder.encode(newPassword)));
+            } catch (Exception exception) {
+                throw new ApiException(DEFAULT_ERROR_MESSAGE);
+            }
+        } else {
+            throw new ApiException("Incorrect current password. Please try again.");
+        }
+
+
     }
 
     private Boolean isLinkExpired(String key, VerificationType password) {
