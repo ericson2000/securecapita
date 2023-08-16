@@ -9,6 +9,7 @@ import io.getarrayus.securecapita.repository.UserRepository;
 import io.getarrayus.securecapita.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import static io.getarrayus.securecapita.mapper.UserMapper.INSTANCE;
 
@@ -77,6 +78,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUserRole(Long userId, String roleName) {
         roleRepository.updateUserRole(userId, roleName);
+    }
+
+    @Override
+    public void updateAccountSettings(Long userId, boolean enabled, boolean notLocked) {
+        userRepository.updateAccountSettings(userId, enabled, notLocked);
+    }
+
+    @Override
+    public UserDto toggleMfa(String email) {
+        return mapToUserDto(userRepository.toggleMfa(email));
+    }
+
+    @Override
+    public void updateImage(UserDto userDto, MultipartFile image) {
+        userRepository.updateImage(INSTANCE.userDtoToUser(userDto), image);
     }
 
     private UserDto mapToUserDto(User user) {

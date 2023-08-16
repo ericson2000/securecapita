@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Configuration
 @EnableConfigurationProperties({DataSourceProperties.class, JpaProperties.class})
-@EnableJpaRepositories(basePackages = {"io.getarrayus.securecapita.config"})
+@EnableJpaRepositories(basePackages = {"io.getarrayus.securecapita.config", "io.getarrayus.securecapita.repository"})
 @EnableTransactionManagement
 @RequiredArgsConstructor
 public class JpaConfig {
@@ -57,7 +57,7 @@ public class JpaConfig {
         final LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
         em.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-        em.setPackagesToScan("io.getarrayus.securecapita.domaine");
+        em.setPackagesToScan("io.getarrayus.securecapita.domain");
         em.setPersistenceUnitName("entityManagerFactory");
         em.setJpaProperties(additionalProperties());
         return em;

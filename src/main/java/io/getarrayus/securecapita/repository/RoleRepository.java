@@ -29,5 +29,4 @@ public interface RoleRepository<T extends Role> {
     void updateUserRole(Long userId, String roleName);
 
     Collection<T> getRoles();
-
 }
