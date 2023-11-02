@@ -35,7 +35,7 @@ import static org.apache.http.HttpHeaders.AUTHORIZATION;
 @Slf4j
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
     private static final String TOKEN_PREFIX = "Bearer ";
-    private static final String[] PUBLIC_ROUTES = {"/users/login", "/users/verify/code", "/users/register", "/users/refresh/token", "/users/image"};
+    private static final String[] PUBLIC_ROUTES = {"/users/login", "/users/verify/code", "/users/register", "/users/refresh/token", "/users/image" , "/users/new/password"};
     private static final String HTTP_OPTIONS_METHOD = "OPTIONS";
     private final TokenProvider tokenProvider;
 

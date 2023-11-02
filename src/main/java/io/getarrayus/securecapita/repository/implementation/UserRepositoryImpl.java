@@ -8,6 +8,7 @@ import io.getarrayus.securecapita.exception.ApiException;
 import io.getarrayus.securecapita.repository.RoleRepository;
 import io.getarrayus.securecapita.repository.UserRepository;
 import io.getarrayus.securecapita.rowmapper.UserRowMapper;
+import io.getarrayus.securecapita.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -31,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static io.getarrayus.securecapita.enums.RoleType.ROLE_USER;
 import static io.getarrayus.securecapita.enums.VerificationType.ACCOUNT;
@@ -50,6 +52,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
     private final NamedParameterJdbcTemplate jdbc;
     private final RoleRepository<Role> roleRepository;
     private final BCryptPasswordEncoder encoder;
+    private final EmailService emailService;
     private static final String USERS_COLUMN_ID = "ID";
     private static final String DEFAULT_ERROR_MESSAGE = "An error occured. Please try again";
 
@@ -63,8 +66,8 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             KeyHolder holder = new GeneratedKeyHolder();
             SqlParameterSource parameters = getSqlParameterSource(user);
             jdbc.update(INSERT_USER_QUERY, parameters, holder);
-//            user.setId(requireNonNull(holder.getKey()).longValue());
-            user.setId((Long) requireNonNull(requireNonNull(holder.getKeys()).get(USERS_COLUMN_ID)));
+            user.setId(requireNonNull(holder.getKey()).longValue());
+//            user.setId((Long) requireNonNull(requireNonNull(holder.getKeys()).get(USERS_COLUMN_ID)));
             // Add role to the user
             roleRepository.addRoleToUser(user.getId(), ROLE_USER.name());
             // Send verification table
@@ -72,6 +75,8 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             // Save URL in verification table
             jdbc.update(INSERT_ACCOUNT_VERIFICATION_URL_QUERY, Map.of("userId", user.getId(), "url", verificationUrl));
             // Send email to user with verification URL
+            log.info("Verification URL: {}", verificationUrl);
+            sendEmail(user.getFirstName(),user.getEmail(),verificationUrl, ACCOUNT);
 //            emailService.sendVerificationUrl(user.getFirstName(),user.getEmail(),verificationUrl,ACCOUNT);
             user.setEnabled(false);
             user.setLocked(true);
@@ -183,6 +188,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             jdbc.update(DELETE_PASSWORD_VERIFICATION_BY_USER_ID_QUERY, Map.of("userId", user.getId()));
             jdbc.update(INSERT_PASSWORD_VERIFICATION_QUERY, Map.of("userId", user.getId(), "url", verificationUrl, "expirationDate", expirationDate));
             //TODO send email with url to user
+            sendEmail(user.getFirstName(),email,verificationUrl, PASSWORD);
             log.info("Verification URL: {}", verificationUrl);
 
         } catch (Exception exception) {
@@ -197,6 +203,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
 
         try {
             return jdbc.queryForObject(SELECT_USER_BY_PASSWORD_URL_QUERY, Map.of("url", getVerificationUrl(key, PASSWORD.getType())), new UserRowMapper());
+            // La Ligne ci-dessous a ete commente pour les besoins de tests, elle doit etre supprimer apres
             // jdbc.update(DELETE_PASSWORD_VERIFICATION_BY_USER_ID_QUERY, Map.of("userId", user.getId())); // Depends on use case / developer or business
         } catch (EmptyResultDataAccessException exception) {
             log.error(exception.getMessage());
@@ -214,6 +221,20 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         try {
             jdbc.update(UPDATE_USER_PASSWORD_BY_URL_QUERY, Map.of("password", encoder.encode(password), "url", getVerificationUrl(key, PASSWORD.getType())));
             jdbc.update(DELETE_VERIFICATION_BY_URL_QUERY, Map.of("url", getVerificationUrl(key, PASSWORD.getType())));
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException(DEFAULT_ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public void renewPassword(Long userId, String password, String confirmPassword) {
+        if (!isPasswordAreSame(password, confirmPassword))
+            throw new ApiException("Passwords don't match. Please try again.");
+        try {
+            jdbc.update(UPDATE_PASSWORD_BY_USER_ID_QUERY, Map.of("password", encoder.encode(password), "userId", userId));
+            // La Ligne ci-dessous a ete commente pour les besoins de tests, elle doit etre supprimer apres
+//            jdbc.update(DELETE_PASSWORD_VERIFICATION_BY_USER_ID_QUERY, Map.of("userId", userId));
         } catch (Exception exception) {
             log.error(exception.getMessage());
             throw new ApiException(DEFAULT_ERROR_MESSAGE);
@@ -254,7 +275,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         User user = getUserById(id);
         if (encoder.matches(currentPassword, user.getPassword())) {
             try {
-                jdbc.update(UPDATE_PASSWORD_BY_ID_QUERY, Map.of("userId", id, "password", encoder.encode(newPassword)));
+                jdbc.update(UPDATE_PASSWORD_BY_USER_ID_QUERY, Map.of("userId", id, "password", encoder.encode(newPassword)));
             } catch (Exception exception) {
                 throw new ApiException(DEFAULT_ERROR_MESSAGE);
             }
@@ -305,7 +326,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
     }
 
     private void saveImage(String email, MultipartFile image) {
-        Path fileStorageLocation = Paths.get(System.getProperty("user.home") + "/Downloads/images").toAbsolutePath().normalize();
+        Path fileStorageLocation = Paths.get(System.getProperty("user.home") + "/Téléchargements/images").toAbsolutePath().normalize();
         if (!Files.exists(fileStorageLocation)) {
             try {
                 Files.createDirectories(fileStorageLocation);
@@ -386,5 +407,19 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
 
     private boolean isPasswordAreSame(String password, String confirmPassword) {
         return Strings.isNotBlank(password) && password.equals(confirmPassword);
+    }
+
+    private void sendEmail(String firstName, String email, String verificationUrl, VerificationType verificationType) {
+         CompletableFuture.runAsync(() -> emailService.sendVerificationEmail(firstName,email,verificationUrl,verificationType));
+//        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(new Runnable() {
+//            @Override
+//            public void run() {
+//                try{
+//                    emailService.sendVerificationEmail(firstName,email,verificationUrl,verificationType);
+//                }catch (Exception exception){
+//                    throw new ApiException("Unable to send email");
+//                }
+//            }
+//        } );
     }
 }

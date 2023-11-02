@@ -1,5 +1,6 @@
 package io.getarrayus.securecapita.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -45,7 +46,7 @@ public class Invoice {
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    @JsonInclude
+    @JsonIgnore
     private Customer customer;
 
 }

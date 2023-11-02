@@ -6,10 +6,7 @@ import io.getarrayus.securecapita.domain.UserPrincipal;
 import io.getarrayus.securecapita.dto.UserDto;
 import io.getarrayus.securecapita.event.NewUserEvent;
 import io.getarrayus.securecapita.exception.ApiException;
-import io.getarrayus.securecapita.form.LoginForm;
-import io.getarrayus.securecapita.form.SettingsForm;
-import io.getarrayus.securecapita.form.UpdateForm;
-import io.getarrayus.securecapita.form.UpdatePasswordForm;
+import io.getarrayus.securecapita.form.*;
 import io.getarrayus.securecapita.provider.TokenProvider;
 import io.getarrayus.securecapita.service.EventService;
 import io.getarrayus.securecapita.service.RoleService;
@@ -72,7 +69,7 @@ public class UserController {
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
                         .data(Map.of("user", userDto))
-                        .message("user created")
+                        .message(String.format("User account created for user %s", user.getFirstName()))
                         .status(CREATED)
                         .statusCode(CREATED.value())
                         .build());
@@ -210,7 +207,7 @@ public class UserController {
 
     @GetMapping(value = "/image/{imageName}", produces = IMAGE_PNG_VALUE)
     public byte[] getProfileImage(@PathVariable("imageName") String imageName) throws IOException {
-        return Files.readAllBytes(Paths.get(System.getProperty("user.home") + "/Downloads/images/" + imageName));
+        return Files.readAllBytes(Paths.get(System.getProperty("user.home") + "/Téléchargements/images/" + imageName));
     }
 
     @GetMapping("/verify/password/{key}")
@@ -226,11 +223,10 @@ public class UserController {
                         .build());
     }
 
-    @PostMapping("/resetpassword/{key}/{password}/{confirmPassword}")
-    public ResponseEntity<HttpResponse> renewPasswordWithKey(@PathVariable("key") String key, @PathVariable("password") String password,
-                                                             @PathVariable("confirmPassword") String confirmPassword) {
+    @PutMapping("/new/password")
+    public ResponseEntity<HttpResponse> renewPasswordWithKey(@RequestBody @Valid NewPasswordForm form) {
 
-        userService.renewPassword(key, password, confirmPassword);
+        userService.updatePassword(form.getUserId(), form.getPassword(), form.getConfirmPassword());
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
@@ -353,7 +349,7 @@ public class UserController {
             }
             return getAuthenticatedUser(authentication);
         } catch (Exception exception) {
-            publisher.publishEvent(new NewUserEvent(email, LOGIN_ATTEMPT_FAILURE));
+//            publisher.publishEvent(new NewUserEvent(email, LOGIN_ATTEMPT_FAILURE));
             ExceptionUtils.processError(request, response, exception);
             throw new ApiException(exception.getMessage());
         }

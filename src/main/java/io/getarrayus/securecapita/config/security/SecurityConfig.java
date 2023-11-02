@@ -40,7 +40,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {"/users/login/**", "/users/verify/code/**",
             "/users/register/**", "/users/error/**", "/users/resetpassword/**",
-            "/users/verify/password/**", "/users/verify/account/**", "/users/refresh/token/**", "/users/image/**"};
+            "/users/verify/password/**", "/users/verify/account/**", "/users/refresh/token/**", "/users/image/**", "/users/new/password/**"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

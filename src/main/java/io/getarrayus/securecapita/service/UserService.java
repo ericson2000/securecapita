@@ -19,7 +19,7 @@ public interface UserService {
 
     UserDto verifyPasswordKey(String key);
 
-    void renewPassword(String key, String password, String confirmPassword);
+    void updatePassword(Long userId, String password, String confirmPassword);
 
     UserDto verifyAccountKey(String key);
 

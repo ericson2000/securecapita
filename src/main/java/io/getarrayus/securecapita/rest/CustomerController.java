@@ -1,18 +1,26 @@
 package io.getarrayus.securecapita.rest;
 
+import com.sun.net.httpserver.Headers;
 import io.getarrayus.securecapita.domain.Customer;
 import io.getarrayus.securecapita.domain.HttpResponse;
 import io.getarrayus.securecapita.domain.Invoice;
 import io.getarrayus.securecapita.dto.UserDto;
+import io.getarrayus.securecapita.report.CustomerReport;
 import io.getarrayus.securecapita.service.CustomerService;
 import io.getarrayus.securecapita.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.function.ServerRequest;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -81,7 +89,7 @@ public class CustomerController {
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
                         .data(Map.of("user", userService.getUserByEmail(userDto.getEmail()),
-                                "customers", customerService.searchCustomer(name.orElse(""), page.orElse(0), size.orElse(10))))
+                                "page", customerService.searchCustomer(name.orElse(""), page.orElse(0), size.orElse(10))))
                         .message("Customers retrieved")
                         .status(OK)
                         .statusCode(OK.value())
@@ -94,7 +102,7 @@ public class CustomerController {
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
                         .data(Map.of("user", userService.getUserByEmail(userDto.getEmail()),
-                                "customers", customerService.updateCustomer(customer)))
+                                "customer", customerService.updateCustomer(customer)))
                         .message("Customer updated")
                         .status(OK)
                         .statusCode(OK.value())
@@ -120,7 +128,7 @@ public class CustomerController {
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
                         .data(Map.of("user", userService.getUserByEmail(userDto.getEmail()),
-                                "invoices", customerService.getInvoice(page.orElse(0), size.orElse(10))))
+                                "page", customerService.getInvoice(page.orElse(0), size.orElse(10))))
                         .message("Invoice retrieved")
                         .status(OK)
                         .statusCode(OK.value())
@@ -142,11 +150,13 @@ public class CustomerController {
 
     @GetMapping("/invoice/get/{id}")
     public ResponseEntity<HttpResponse> getInvoice(@AuthenticationPrincipal UserDto userDto, @PathVariable("id") Long id) {
+        var invoice = customerService.getInvoice(id);
         return ResponseEntity.ok(
                 HttpResponse.builder()
                         .timeStamp(LocalDateTime.now().toString())
                         .data(Map.of("user", userService.getUserByEmail(userDto.getEmail()),
-                                "invoice", customerService.getInvoice(id)))
+                                "invoice", invoice,
+                                "customer", invoice.getCustomer()))
                         .message("Invoice retrieved")
                         .status(OK)
                         .statusCode(OK.value())
@@ -161,10 +171,26 @@ public class CustomerController {
                         .timeStamp(LocalDateTime.now().toString())
                         .data(Map.of("user", userService.getUserByEmail(userDto.getEmail()),
                                 "customers", customerService.getCustomers()))
-                        .message("Customers retrived")
+                        .message(String.format("Customer added to invoice with ID: %s", customerId))
                         .status(OK)
                         .statusCode(OK.value())
                         .build());
+    }
+
+    @GetMapping("/download/report")
+    public ResponseEntity<Resource> downloadReport() {
+        List<Customer> customers = new ArrayList<>();
+        customerService.getCustomers().iterator().forEachRemaining(customers::add);
+        CustomerReport report = new CustomerReport(customers);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("File-Name", "customer-report.xlsx");
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment;File-Name=customer-report.xlsx");
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/vnd.ns-excel"))
+                .headers(headers)
+                .body(report.export());
+
     }
 
 

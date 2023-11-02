@@ -4,6 +4,8 @@ import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * @version 1.0
  * @Author Eric Wouwo Tionang
@@ -17,9 +19,16 @@ public class SmsUtils {
     private static final String TOKEN_KEY = "bf9641eb42186d0dbbce856c1e3f8775";
 
     public static void sendSMS(String phoneNumber, String messageBody) {
-        Twilio.init(SID_KEY, TOKEN_KEY);
-        Message message = Message.creator(new PhoneNumber("+230" + phoneNumber), new PhoneNumber(FROM_NUMBER), messageBody).create();
-        System.out.println("Message : " + message);
+        CompletableFuture.runAsync(() -> {
+            Twilio.init(SID_KEY, TOKEN_KEY);
+            Message message = Message.creator(new PhoneNumber("+230" + phoneNumber), new PhoneNumber(FROM_NUMBER), messageBody).create();
+        });
     }
+
+//    public static void sendSMS(String phoneNumber, String messageBody) {
+//        Twilio.init(SID_KEY, TOKEN_KEY);
+//        Message message = Message.creator(new PhoneNumber("+230" + phoneNumber), new PhoneNumber(FROM_NUMBER), messageBody).create();
+//        System.out.println("Message : " + message);
+//    }
 
 }

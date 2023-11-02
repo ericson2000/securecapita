@@ -5,6 +5,10 @@ import io.getarrayus.securecapita.domain.User;
 import io.getarrayus.securecapita.dto.UserDto;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -103,6 +107,4 @@ public class UserMapperTest {
         assertThat(userDto.getPermissions()).isEqualTo(role.getPermission());
 
     }
-
-
 }
