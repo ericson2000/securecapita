@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static io.getarrayus.securecapita.constant.Constants.*;
 import static io.getarrayus.securecapita.utils.ExceptionUtils.processError;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -34,9 +35,7 @@ import static org.apache.http.HttpHeaders.AUTHORIZATION;
 @RequiredArgsConstructor
 @Slf4j
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
-    private static final String TOKEN_PREFIX = "Bearer ";
-    private static final String[] PUBLIC_ROUTES = {"/users/login", "/users/verify/code", "/users/register", "/users/refresh/token", "/users/image" , "/users/new/password"};
-    private static final String HTTP_OPTIONS_METHOD = "OPTIONS";
+
     private final TokenProvider tokenProvider;
 
     @Override

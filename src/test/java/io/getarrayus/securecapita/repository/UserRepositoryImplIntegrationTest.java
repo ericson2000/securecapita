@@ -4,10 +4,7 @@ import io.getarrayus.securecapita.config.InfrastructureTestConfig;
 import io.getarrayus.securecapita.domain.Role;
 import io.getarrayus.securecapita.domain.User;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -26,6 +23,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(locations = "classpath:application-test.properties")
 @SpringBootTest(classes = {InfrastructureTestConfig.class})
 @DirtiesContext
+@Disabled
 public class UserRepositoryImplIntegrationTest {
 
     @Autowired

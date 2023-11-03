@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.getarrayus.securecapita.constant.Constants.TOKEN_PREFIX;
 import static io.getarrayus.securecapita.enums.EventType.*;
 import static io.getarrayus.securecapita.mapper.UserMapper.INSTANCE;
 import static io.getarrayus.securecapita.utils.UserUtils.getAuthenticatedUser;
@@ -44,7 +45,6 @@ import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 @RequestMapping(path = "/users")
 @RequiredArgsConstructor
 public class UserController {
-    private static final String TOKEN_PREFIX = "Bearer ";
 
     private final UserService userService;
     private final RoleService roleService;
@@ -338,8 +338,9 @@ public class UserController {
     }
 
     private UserDto authenticate(String email, String password) {
+        var userByEmail = userService.getUserByEmail(email);
         try {
-            if (Objects.nonNull(userService.getUserByEmail(email))) {
+            if (Objects.nonNull(userByEmail)) {
                 publisher.publishEvent(new NewUserEvent(email, LOGIN_ATTEMPT));
             }
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
@@ -349,7 +350,9 @@ public class UserController {
             }
             return getAuthenticatedUser(authentication);
         } catch (Exception exception) {
-//            publisher.publishEvent(new NewUserEvent(email, LOGIN_ATTEMPT_FAILURE));
+            if (Objects.nonNull(userByEmail)) {
+                publisher.publishEvent(new NewUserEvent(email, LOGIN_ATTEMPT_FAILURE));
+            }
             ExceptionUtils.processError(request, response, exception);
             throw new ApiException(exception.getMessage());
         }

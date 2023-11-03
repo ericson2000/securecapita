@@ -34,6 +34,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import static io.getarrayus.securecapita.constant.Constants.DATE_FORMAT;
 import static io.getarrayus.securecapita.enums.RoleType.ROLE_USER;
 import static io.getarrayus.securecapita.enums.VerificationType.ACCOUNT;
 import static io.getarrayus.securecapita.enums.VerificationType.PASSWORD;
@@ -48,7 +49,6 @@ import static org.apache.commons.lang3.time.DateUtils.addDays;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository<User>, UserDetailsService {
 
-    private static final String DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
     private final NamedParameterJdbcTemplate jdbc;
     private final RoleRepository<Role> roleRepository;
     private final BCryptPasswordEncoder encoder;

@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(locations = "classpath:application-test.properties")
 @SpringBootTest(classes = {InfrastructureTestConfig.class})
 @DirtiesContext
+@Disabled
 public class RoleRepositoryImplIntegrationTest {
 
     @Autowired

@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
+import static io.getarrayus.securecapita.constant.Constants.*;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.stream;
 
@@ -36,12 +37,7 @@ import static java.util.Arrays.stream;
 @Component
 @RequiredArgsConstructor
 public class TokenProvider {
-    public static final String TOKEN_CANNOT_BE_VERIFIED = "Token cannot be verified";
-    private static final String GET_ARRAYS_LLC = "GET_ARRAYS_LLC";
-    private static final String CUSTOMER_MANAGEMENT_SERVICE = "CUSTOMER_MANAGEMENT_SERVICE";
-    private static final String AUTHORITIES = "authorities";
-    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 432_000_000;
-    private static final long REFRESH_TOKEN_EXPIRATION_TIME = 432_000_000;
+
 
     @Value("${jwt.secret}")
     private String secret;
